@@ -1,3 +1,5 @@
+#%%
+
 import numpy as np
 import subprocess
 import os
@@ -11,8 +13,8 @@ import os
 # -----------------------------------------------------------------------
 
 # Path to compiled executable (adjust if needed)
-repertoire     = ''
-executable     = 'engine.exe'
+repertoire     = '/Users/ella/Documents/EPFL/BA4/PHYSNUM/Exercise4_2026/Exercise4_2026/'
+executable     = 'engine'
 input_filename = 'trivial.in'   # base configuration file
 
 # Base parameters (values here are overwritten by the scan below)
@@ -21,6 +23,7 @@ input_parameters = {
     'R'      : 0.1,    # Outer radius [m]
     'V0'     : 0,      # Boundary potential [V]
     'a0'     : 1,      # Charge density scale [V/m^2]  (unused when trivial=true)
+    'dx'     : 1.0/64.0,
     'trivial': 'true', # true: uniform test case
     'N1'     : 5,      # Intervals in [0, b]
     'N2'     : 5,      # Intervals in [b, R]
@@ -29,8 +32,11 @@ input_parameters = {
 # -----------------------------------------------------------------------
 # Choose the parameter to scan
 # -----------------------------------------------------------------------
-paramstr       = 'N1'                        # parameter name in engine
-variable_array = 2**np.arange(1, 9)          # N = 2, 4, 8, ..., 256
+#paramstr       = 'N1'                        # parameter name in engine
+#variable_array = 2**np.arange(1, 9)          # N = 2, 4, 8, ..., 256
+
+paramstr       = 'dx'                        # parameter name in engine
+variable_array = [1.0/64, 1.0/32, 1.0/16]  # rajouter des valeurs pour faire la conv après
 
 # Build a label for output directories / filenames
 outstr = (f"electrostatics_b_{input_parameters['b']:.2g}"
@@ -69,3 +75,16 @@ for val in variable_array:
     print(cmd)
     subprocess.run(cmd, shell=True)
     print("Done.")
+
+# -----------------------------------------------------------------------
+#plot
+# -----------------------------------------------------------------------
+
+
+#for i,data in enumerate(dataset):
+    
+
+
+
+
+# %%

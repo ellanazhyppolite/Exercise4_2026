@@ -7,7 +7,7 @@ import glob
 import subprocess
 
 # Parameters
-repertoire = '/Users/ella/Documents/EPFL/BA4/PHYSNUM/Exercise4_2026'
+repertoire = '/Users/ella/Documents/EPFL/BA4/PHYSNUM/Exercise4_2026/Exercise4_2026'
 executable = '/engine'
 input_filename = 'configuration.in.example'
 
@@ -65,7 +65,7 @@ for i in range(len(variable_array)):
 # Read shooting output files  (*_shooting.out)
 # ============================================================
 
-files = sorted(glob.glob(os.path.join(outdir, "*_shooting.out")))
+files = sorted(glob.glob(os.path.join(outdir, "*_tir.out")))
 
 if len(files) == 0:
     print("No output files found! Check that the C++ code ran correctly.")
@@ -75,7 +75,7 @@ param_values = []
 
 for f in files:
     name = os.path.basename(f)      
-    name = name.replace("_shooting.out", "")
+    name = name.replace("_tir.out", "")
     parts = name.split("_")
 
 
@@ -115,20 +115,18 @@ fig_dir = os.path.join(outdir, "figures")
 os.makedirs(fig_dir, exist_ok=True)
 
 # ============================================================
-# Plot: alpha found vs dx  (convergence of shooting method)
+# Plot: alpha vs dx 
 # ============================================================
 
-xs     = []
 alphas = []
 phis   = []
 Es   = []
 
 for data in datasets:
 
-    xs.append(data[:, 0])
-    alphas.append(data[:, 1])
-    phis.append(data[:, 2])
-    Es.append(data[:, 3])
+    alphas.append(data[:, 0])
+    phis.append(data[:, 1])
+    Es.append(data[:, 2])
 
 
 R    = input_parameters['R']
@@ -142,11 +140,11 @@ ax.set_xlabel('dx')
 ax.set_ylabel('$E_r(R)$')
 ax.set_title('Shooting method: found $E_r(R)$ vs step size')
 ax.legend()
-fig.savefig(os.path.join(fig_dir, "shooting_alpha_vs_dx.png"), dpi=150)
+fig.savefig(os.path.join(fig_dir, "tir_alpha_vs_dx.png"), dpi=150)
 plt.show()
 
 # ============================================================
-# Plot: error vs dx  (log-log, convergence order)
+# Plot: error vs dx 
 # ============================================================
 
 errors = np.abs(np.array(alphas) - exact_alpha)

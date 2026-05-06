@@ -5,7 +5,7 @@
 #include <vector>
 #include <valarray>
 
-#include "/Users/ella/Documents/EPFL/BA4/PHYSNUM/Exercise4_2026/common/ConfigFile.h"
+#include "/Users/ella/Documents/EPFL/BA4/PHYSNUM/Exercise4_2026/Exercise4_2026/common/ConfigFile.h"
 
 using namespace std;
 
@@ -18,21 +18,22 @@ const double PI = 3.1415926535897932384626433832795028841971e0;
 std::valarray<double> k1(2), k2(2), k3(2), k4(2); // preallocate valarrays for the RK4 step parts
 std::valarray<double> state(2), trial1(2), halfStep(2), trial2(2), derivativeBuffer(2); // preallocate valarrays for the different steps and dy/dt vector
 
-int timeScheme = 1;              // 0 = fixed RK4, 1 = adaptive RK4
-int sampling = 1;
-double x = 0.0;
-double xEnd = 1.0;
-double dx = 1.0/64.0;
-double tolerance = 1e-6;
-double d = 0.0;
 
-double R = 0.0;
-double V0 = 0.0;
+//int timeScheme = 0;              // 0 = fixed RK4, 1 = adaptive RK4
+//int sampling = 1;
+//double x = 0.0;
+const double xEnd = 1.0;
+//double dx = 1.0/64.0;
+//double tolerance = 1e-6;
+//double d = 100.0;
+
+//double R = 0.0;
+//double V0 = 0.0;
 
 int stepsSinceLastOutput = 0;
 std::ofstream outputFile;
 
-std::valarray<double> dydx(const std::valarray<double>& state_){
+std::valarray<double> dydx(const std::valarray<double>& state_, double x, double R){
     
     // derivative byffer = dy/dx, suit la formule du latex
     derivativeBuffer[0] = - R * state_[0];
@@ -41,11 +42,11 @@ std::valarray<double> dydx(const std::valarray<double>& state_){
     return derivativeBuffer;
 }
 
-void RungeKutta(const std::valarray<double>& state_, double dx_){
-    k1 = dx_*dydx(state_);
-    k2 = dx_*dydx(state_ + 0.5 * k1);
-    k3 = dx_*dydx(state_ + 0.5 * k2);
-    k4 = dx_*dydx(state_ + k3);
+void RungeKutta(const std::valarray<double>& state_, double x, double dx_, double R){
+    k1 = dx_*dydx(state_, x, R);
+    k2 = dx_*dydx(state_ + 0.5 * k1, x, R);
+    k3 = dx_*dydx(state_ + 0.5 * k2, x, R);
+    k4 = dx_*dydx(state_ + k3, x, R);
 }
 
 double norm(const std::valarray<double>& v){
@@ -57,15 +58,21 @@ double norm(const std::valarray<double>& v){
 }
 
 
-void step(){
+void step(double x, double dx, double R){
+
+  // en dessous si on fait adptatif
+  /* 
     if(timeScheme == 1){
+        double d(100.0);
+        double tolerance(1e-6);
+
         do{
-            RungeKutta(state, dx);
+            RungeKutta(state, dx, R);
             trial1 = state + 1.0/6.0 * (k1 + 2*k2 + 2*k3 + k4);    //eq 2.141 notes de cours
 
-            RungeKutta(state, dx/2.0);
+            RungeKutta(state, dx/2.0, R);
             halfStep = state + 1.0/6.0 * (k1 + 2*k2 + 2*k3 + k4);
-            RungeKutta(halfStep, dx/2.0);
+            RungeKutta(halfStep, dx/2.0, R);
             trial2 = halfStep + 1.0/6.0 * (k1 + 2*k2 + 2*k3 + k4);
 
             d = norm(trial1 - trial2);
@@ -81,28 +88,30 @@ void step(){
         dx = dx * pow(tolerance/d, 1.0/5.0);
 
     }
-    if(timeScheme == 0){
-        RungeKutta(state, dx);
+        */
+
+  //  if(timeScheme == 0){
+        RungeKutta(state, dx, x, R);
         state += 1.0/6.0 * (k1 + 2*k2 + 2*k3 + k4);
         x += dx;
 
-    }
+  //  }
 }
 
 
-double F_alpha(double alpha){
+double F_alpha(double alpha, double dx, double V0, double R){
     state[0] = V0;
     state[1] = alpha;
-    x = 0;
+    double x(0.0);
 
     while (x < xEnd) {
-        step();
+        step(x, dx, R);
     } 
     
     return state[1]; // = state[1] - contrainte_initiale (=0)
 }
 
-
+// en dessous printOut
 /*
  void printOut(bool force){
         if (force || stepsSinceLastOutput >= sampling) {
@@ -126,7 +135,8 @@ double F_alpha(double alpha){
    
 
 // Resolution d'un systeme d'equations lineaires par elimination de Gauss-Jordan
-// (tridiagonal system: diag, lower, upper, rhs all of consistent sizes)
+// (tridiagonal system: diag, lower, upper, rhs all of consistent sizes)$``
+
 template<class T>
 vector<T> solve(const vector<T>& diag,
                 const vector<T>& lower,
@@ -199,12 +209,11 @@ int main(int argc, char* argv[])
 
     // Physical parameters
     const double b   = configFile.get<double>("b");   // Inner radius [m]
-    R   = configFile.get<double>("R");   // Outer radius [m]
-    V0  = configFile.get<double>("V0");  // Boundary potential at r=R [V]
-    double a0  = configFile.get<double>("a0");  // Free charge density scale [V/m^2]
+    const double R   = configFile.get<double>("R");   // Outer radius [m]
+    const double V0  = configFile.get<double>("V0");  // Boundary potential at r=R [V]
+    const double a0  = configFile.get<double>("a0");  // Free charge density scale [V/m^2]
     const bool trivial = configFile.get<bool>("trivial"); // true: uniform test case
-
-    dx = configFile.get<double>("dx");
+    const double dx = configFile.get<double>("dx");
 
     // Discretisation
     const int N1 = configFile.get<int>("N1"); // Intervals in [0, b]
@@ -313,8 +322,8 @@ int main(int argc, char* argv[])
         double rR = rmid[k+1];
         double dr = rR - rL;
 
-        //div_Dr[k] = (rR * Dr[k+1] - rL * Dr[k]) / (dr * rmidmid[k]);
-        div_Dr[k] = (Dr[k+1] - Dr[k]) / dr;
+        div_Dr[k] = (rR * Dr[k+1] - rL * Dr[k]) / (dr * rmidmid[k]);
+        //div_Dr[k] = (Dr[k+1] - Dr[k]) / dr;
 
         rho_at_midmid[k] = rho_lib(rmidmid[k], b, a0, trivial);
     }
@@ -350,23 +359,24 @@ int main(int argc, char* argv[])
 
     double alpha0 = 0.0;   // premier guess
     double alpha1 = 1.0;   // deuxième guess
+    double tolerance = 1e-6;
 
-    double F0 = F_alpha(alpha0);
-    double F1 = F_alpha(alpha1);
+    double F0 = F_alpha(alpha0, dx, V0, R);
+    double F1 = F_alpha(alpha1, dx, V0, R);
 
     while (abs(F1) > tolerance) {
         double alpha2 = alpha1 - F1 * (alpha1 - alpha0) / (F1 - F0);
         alpha0 = alpha1; 
         F0 = F1;
         alpha1 = alpha2; 
-        F1 = F_alpha(alpha1);
+        F1 = F_alpha(alpha1, dx, V0, R);
     }
 
 
-    outputFile.open((output + "_shooting.out").c_str());
+    outputFile.open((output + "_tir.out").c_str());
     outputFile.precision(15);
 
-    outputFile << x << " " << alpha0 << " " << state[0] << " " << state[1] << " " << endl;
+    outputFile << alpha0 << " " << state[0] << " " << state[1] << " " << endl;
 
 
     return 0;
