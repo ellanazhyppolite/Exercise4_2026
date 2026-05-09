@@ -33,20 +33,30 @@ const double xEnd = 1.0;
 int stepsSinceLastOutput = 0;
 std::ofstream outputFile;
 
-std::valarray<double> dydx(const std::valarray<double>& state_, double x, double R){
+std::valarray<double> dydx(const std::valarray<double>& state_, const double& x, const double& R){
     
     // derivative byffer = dy/dx, suit la formule du latex
     derivativeBuffer[0] = - R * state_[0];
     derivativeBuffer[1] = R + state_[1] / (1 - x);
 
+    //cout << "derivativeBuffer " << derivativeBuffer[0] << " " << derivativeBuffer[1] << endl;
+
     return derivativeBuffer;
 }
 
-void RungeKutta(const std::valarray<double>& state_, double x, double dx_, double R){
+void RungeKutta(const std::valarray<double>& state_, const double& x, const double& dx_, const double& R){
+    cout << "dx " << dx_ << endl; //ici on a dx = 0, c'est pour ca que evolue pas
     k1 = dx_*dydx(state_, x, R);
+    cout << "k1 " << k1[0] << " " << k1[1] << endl;
+
     k2 = dx_*dydx(state_ + 0.5 * k1, x, R);
+    cout << "k2 " << k2[0] << " " << k2[1] << endl;
+
     k3 = dx_*dydx(state_ + 0.5 * k2, x, R);
+    cout << "k3 " << k3[0] << " " << k3[1] << endl;
+
     k4 = dx_*dydx(state_ + k3, x, R);
+    cout << "k4 " << k4[0] << " " << k4[1] << endl;
 }
 
 double norm(const std::valarray<double>& v){
@@ -58,9 +68,9 @@ double norm(const std::valarray<double>& v){
 }
 
 
-void step(double x, double dx, double R){
+void step(double& x,const double& dx, const double& R){
 
-  // en dessous si on fait adptatif
+  // en dessous si on fait adptatif mais je crois pas que ce soit nessecaire
   /* 
     if(timeScheme == 1){
         double d(100.0);
@@ -91,18 +101,25 @@ void step(double x, double dx, double R){
         */
 
   //  if(timeScheme == 0){
-        RungeKutta(state, dx, x, R);
+        RungeKutta(state, x, dx, R);
         state += 1.0/6.0 * (k1 + 2*k2 + 2*k3 + k4);
         x += dx;
+
+        cout << "state " << state[0] << " " << state[1] << endl;
+        cout << "x : " << x  << endl;
+        cout << "$$$$" << endl;
 
   //  }
 }
 
 
-double F_alpha(double alpha, double dx, double V0, double R){
+double F_alpha(const double& alpha, const double& dx, const double& V0, const double& R){
     state[0] = V0;
     state[1] = alpha;
     double x(0.0);
+
+    cout << "state initial : " << state[0] << " " << state[1] << endl;
+    cout << "x: " << x << " dx: " << dx << endl;
 
     while (x < xEnd) {
         step(x, dx, R);
@@ -359,10 +376,14 @@ int main(int argc, char* argv[])
 
     double alpha0 = 0.0;   // premier guess
     double alpha1 = 1.0;   // deuxième guess
+    //double alpha2;
     double tolerance = 1e-6;
 
     double F0 = F_alpha(alpha0, dx, V0, R);
     double F1 = F_alpha(alpha1, dx, V0, R);
+
+    ofstream ofs(output + "_tir.out");
+    ofs.precision(15);
 
     while (abs(F1) > tolerance) {
         double alpha2 = alpha1 - F1 * (alpha1 - alpha0) / (F1 - F0);
@@ -370,13 +391,25 @@ int main(int argc, char* argv[])
         F0 = F1;
         alpha1 = alpha2; 
         F1 = F_alpha(alpha1, dx, V0, R);
+
+        cout << "alpha2 " << alpha2 << endl;
+        cout << "F1 " << F1 << endl; 
+        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+
+        ofs << alpha2 << " " << state[0] << " " << state[1] << endl;
     }
 
+    /*
 
-    outputFile.open((output + "_tir.out").c_str());
-    outputFile.precision(15);
+    {
+        // 4. alphas, phi et E finaux
+        ofstream ofs(output + "_tir.out");
+        ofs.precision(15);
+        ofs << alpha2 << " " << state[0] << " " << state[1] << " " << endl;
+    }
+        */
 
-    outputFile << alpha0 << " " << state[0] << " " << state[1] << " " << endl;
+   // outputFile << alpha0 << " " << state[0] << " " << state[1] << " " << endl;
 
 
     return 0;
