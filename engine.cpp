@@ -396,7 +396,7 @@ int main(int argc, char* argv[])
         cout << "F1 " << F1 << endl; 
         cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 
-        ofs << alpha2 << " " << state[0] << " " << state[1] << endl;
+        ofs << -alpha2 << " " << state[0] << " " << -state[1] << endl;
     }
 
     /*

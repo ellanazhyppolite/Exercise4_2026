@@ -38,8 +38,9 @@ input_parameters = {
 #variable_array = 2**np.arange(1, 9)          # N = 2, 4, 8, ..., 256
 
 paramstr       = 'dx'                        # parameter name in engine
+variable_array = 1.0 / 2**np.arange(3,16)
 #variable_array = [1.0/64, 1.0/32, 1.0/16]  # rajouter des valeurs pour faire la conv après
-variable_array = [1.0/64.0]
+#variable_array = [1.0/64.0]
 
 # Build a label for output directories / filenames
 outstr = (f"electrostatics_b_{input_parameters['b']:.2g}"
@@ -107,7 +108,7 @@ param_values = []
 for f in files:
     name = os.path.basename(f)      
     name = name.replace("_tir.out", "")
-    par ts = name.split("_")
+    parts = name.split("_")
 
 
     try:
@@ -162,8 +163,20 @@ for data in datasets:
 
 R    = input_parameters['R']
 a0   = input_parameters['a0']
-exact_alpha = a0 * R / np.pi
+exact_alpha = R/2.0 #cas uniforme
 
+
+plt.loglog(param_values, alphas, 'o-')
+indice = np.where(param_values == 1.0/64.0)[0][0]
+print(indice)
+plt.plot(param_values[indice], alphas[indice], 'ko', label = r"$\Delta x$ = 1/64")
+plt.axhline(exact_alpha, color='r', linestyle='--', label=f"Exact = {exact_alpha}")
+plt.xlabel(r"$\Delta x$")
+plt.ylabel(r"$E_r(R)$")
+plt.legend()
+
+
+'''
 fig, ax = plt.subplots()
 ax.plot(param_values, alphas, 'o-', label='Numerical $E_r(R)$')
 ax.axhline(exact_alpha, color='r', linestyle='--', label=f'Exact = {exact_alpha:.4f}')
@@ -173,6 +186,11 @@ ax.set_title('Shooting method: found $E_r(R)$ vs step size')
 ax.legend()
 fig.savefig(os.path.join(fig_dir, "tir_alpha_vs_dx.png"), dpi=150)
 plt.show()
+'''
+print(alphas)
+
+
+#%%
 
 # ============================================================
 # Plot: error vs dx 
