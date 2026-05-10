@@ -29,7 +29,7 @@ input_parameters = {
     'dx'     : 1.0/64.0,
     'trivial': 'false', # true: uniform test case
     'N1'     : 5,      # Intervals in [0, b]
-    'N2'     : 5,      # Intervals in [b, R]
+    'N2'     : 160,      # Intervals in [b, R]
 }
 
 # -----------------------------------------------------------------------
@@ -39,7 +39,7 @@ input_parameters = {
 #variable_array = 2**np.arange(1, 9)          # N = 2, 4, 8, ..., 256
 
 paramstr       = 'N1'                        # parameter name in engine
-variable_array = [5]
+variable_array = [160]
 #variable_array = [1.0/64, 1.0/32, 1.0/16]  # rajouter des valeurs pour faire la conv après
 #variable_array = [1.0/64.0]
 
@@ -152,7 +152,6 @@ div_D = data[:, 1]
 rho_sur_eps0 = data[:, 2]
 
 
-
 plt.figure(figsize=(10, 6))
 
 plt.plot(r_coords, div_D, 'o', label=r'$\nabla \cdot \mathbf{D} / \epsilon_0$ ', markersize=4)
@@ -160,19 +159,34 @@ plt.plot(r_coords, div_D, 'o', label=r'$\nabla \cdot \mathbf{D} / \epsilon_0$ ',
 
 plt.plot(r_coords, rho_sur_eps0, '-', label=r'$\rho_{lib} / \epsilon_0$ ', alpha=0.7)
 
-plt.xlabel('Rayon r [m]')
-plt.ylabel('Densité de charge / $\epsilon_0$')
-plt.title('Vérification de la loi de Gauss $\nabla \cdot \mathbf{D} = \rho_{lib}$')
+plt.xlabel(' r [m]', fontsize=14)
+plt.ylabel('divergence et densité de charge [V/m$^2$]', fontsize=14)
 plt.legend()
-plt.grid(True)
-
-#erreur relative
-plt.figure(figsize=(10, 4))
-erreur = np.abs(div_D - rho_sur_eps0)
-plt.semilogy(r_coords, erreur, color='red')
-plt.xlabel('Rayon r [m]')
-plt.ylabel('Erreur absolue')
 
 plt.grid(True)
+
+
+erreur_abs = np.abs(div_D - rho_sur_eps0)  
+
+
+plt.figure(figsize=(10, 5))
+
+
+plt.semilogy(r_coords, erreur_abs, 'r-', linewidth=1.5, label=r'Erreur absolue $| \nabla \cdot \mathbf{D}/\epsilon_0 - \rho_{lib}/\epsilon_0 |$')
+
+
+plt.xlabel('r [m]', fontsize=12)
+plt.ylabel('Erreur absolue [$V/m^2$]', fontsize=12)
+plt.grid(True, which="both", ls="-", alpha=0.5)
+plt.legend()
+
+# Optionnel : marquer la frontière b = 0.02
+plt.axvline(x=0.02, color='black', linestyle='--', alpha=0.3, label='Interface b')
+
+plt.tight_layout()
+plt.show()
+
+
+
 
 plt.show()
